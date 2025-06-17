@@ -1,3 +1,4 @@
+use std::time::Duration;
 use bitcoin::block::Header;
 use bitcoin::{BlockHash, Transaction, Txid};
 use jsonrpsee::{
@@ -243,9 +244,28 @@ impl RpcServerImpl {
             None => return Ok(()),
         };
 
-        // Send request to broadcast endpoint
+        let health_check = self.broadcast_client
+            .head(endpoint)
+            .timeout(Duration::from_secs(1))
+            .send()
+            .await;
+
+        match health_check {
+            Ok(resp) => {
+                if !resp.status().is_success() {
+                    tracing::warn!("mempool health check: failed with status: {}", resp.status());
+                    return Ok(())
+                }
+            }
+            Err(e) => {
+                tracing::warn!("mempool health check: could not connect: {}", e);
+                return Ok(())
+            }
+        }
+
         let response = self.broadcast_client
             .post(endpoint)
+            .timeout(Duration::from_secs(30))
             .body(tx_hex.to_string())
             .send()
             .await;
