@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, ops::Range, time::Duration};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::Sender;
 use crate::{BlockchainInfo, Event, IndexedFilter, Log, TrustedPeer, TxBroadcast, Warning};
-use crate::core::messages::{BlockFilterByHeightRequest, BlockchainInfoRequest, HeaderByHashRequest, MempoolEntryRequest, QueueBlocksRequest};
+use crate::core::messages::{BlockFilterByHeightRequest, BlockchainInfoRequest, HeaderByHashRequest, MempoolEntryRequest, PruneBlockchainRequest, QueueBlocksRequest};
 use crate::rpc::server::MempoolEntryResult;
 use super::{error::DownloadRequestError, messages::BlockRequest};
 use super::{
@@ -329,6 +329,21 @@ impl Requester {
             .send(ClientMessage::ContinueDownload)
             .await
             .map_err(|_| ClientError::SendError)
+    }
+
+    /// Prune all blocks up to and including the given height.
+    pub async fn prune_blockchain(&self, height: u32) -> Result<u32, ClientError> {
+        let (tx, rx) = tokio::sync::oneshot::channel::<anyhow::Result<u32>>();
+        self.ntx
+            .send(ClientMessage::PruneBlockchain(PruneBlockchainRequest {
+                oneshot: tx,
+                height,
+            }))
+            .await
+            .map_err(|_| ClientError::SendError)?;
+        rx.await
+            .map_err(|_| ClientError::SendError)?
+            .map_err(|e| ClientError::Custom(e.to_string()))
     }
 
     /// Check if the node is running.

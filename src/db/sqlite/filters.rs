@@ -36,7 +36,7 @@ pub trait FiltersStore: Debug + Send + Sync {
 
     fn reload(
         &self,
-    ) -> FutureResult<(), SqlInitializationError>;
+    ) -> FutureResult<'_, (), SqlInitializationError>;
 
     fn file_path(&self) -> Option<PathBuf>;
 
@@ -44,7 +44,7 @@ pub trait FiltersStore: Debug + Send + Sync {
     fn insert_filters(
         &mut self,
         filters: BTreeMap<u32, Filter>,
-    ) -> FutureResult<(), Self::Error>;
+    ) -> FutureResult<'_, (), Self::Error>;
 
     /// Get a filter by its block hash.
     fn get_filter_by_hash<'a>(
@@ -67,16 +67,16 @@ pub trait FiltersStore: Debug + Send + Sync {
     fn get_block_hash(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<BlockHash>, Self::Error>;
+    ) -> FutureResult<'_, Option<BlockHash>, Self::Error>;
 
     /// Persist the current filters tip checkpoint.
     fn set_tip(
         &mut self,
         tip: HeaderCheckpoint,
-    ) -> FutureResult<(), Self::Error>;
+    ) -> FutureResult<'_, (), Self::Error>;
 
     /// Load the current filters tip checkpoint.
-    fn get_tip(&mut self) -> FutureResult<Option<HeaderCheckpoint>, Self::Error>;
+    fn get_tip(&mut self) -> FutureResult<'_, Option<HeaderCheckpoint>, Self::Error>;
 }
 
 // ---------- SQLite Schema ----------
@@ -330,21 +330,21 @@ impl FiltersStore for SqliteFilterDb {
         Some(self.file_path.clone())
     }
 
-    fn reload(&self) -> FutureResult<(), SqlInitializationError> {
+    fn reload(&self) -> FutureResult<'_, (), SqlInitializationError> {
         Box::pin(self.reload())
     }
 
     fn get_block_hash(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<BlockHash>, Self::Error> {
+    ) -> FutureResult<'_, Option<BlockHash>, Self::Error> {
         Box::pin(self.get_block_hash(height))
     }
 
     fn insert_filters(
         &mut self,
         filters: BTreeMap<u32, Filter>,
-    ) -> FutureResult<(), Self::Error> {
+    ) -> FutureResult<'_, (), Self::Error> {
         Box::pin(self.insert_filters(filters))
     }
 
@@ -358,7 +358,7 @@ impl FiltersStore for SqliteFilterDb {
     fn get_filter_by_height(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<Filter>, Self::Error> {
+    ) -> FutureResult<'_, Option<Filter>, Self::Error> {
         Box::pin(self.get_filter_by_height(height))
     }
 
@@ -369,11 +369,11 @@ impl FiltersStore for SqliteFilterDb {
         Box::pin(self.load_filters(range))
     }
 
-    fn set_tip(&mut self, tip: HeaderCheckpoint) -> FutureResult<(), Self::Error> {
+    fn set_tip(&mut self, tip: HeaderCheckpoint) -> FutureResult<'_, (), Self::Error> {
         Box::pin(self.set_tip(tip))
     }
 
-    fn get_tip(&mut self) -> FutureResult<Option<HeaderCheckpoint>, Self::Error> {
+    fn get_tip(&mut self) -> FutureResult<'_, Option<HeaderCheckpoint>, Self::Error> {
         Box::pin(self.get_tip())
     }
 }

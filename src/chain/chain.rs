@@ -446,6 +446,13 @@ impl<H: HeaderStore, B: BlocksStore, F: FiltersStore> Chain<H, B, F> {
         self.header_chain.tip()
     }
 
+    pub(crate) async fn prune_up_to_height(&self, height: u32) -> anyhow::Result<u32> {
+        let mut persister = self.persister.lock().await;
+        let deleted = persister.block_db.prune_up_to_height(height).await
+            .map_err(|_| anyhow::anyhow!("could not prune blocks"))?;
+        Ok(deleted)
+    }
+
     pub(crate) async fn blocks_tip(&self) -> Option<HeaderCheckpoint> {
         self.persister.lock().await.get_tip(AdvanceKind::Blocks).await
     }

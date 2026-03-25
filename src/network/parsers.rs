@@ -79,7 +79,7 @@ impl V1MessageParser {
 }
 
 impl MessageParser for V1MessageParser {
-    fn read_message(&mut self) -> FutureResult<Option<NetworkMessage>, PeerReadError> {
+    fn read_message(&mut self) -> FutureResult<'_, Option<NetworkMessage>, PeerReadError> {
         Box::pin(self.do_read_message())
     }
 }
@@ -132,7 +132,7 @@ impl V2MessageParser {
 }
 
 impl MessageParser for V2MessageParser {
-    fn read_message(&mut self) -> FutureResult<Option<NetworkMessage>, PeerReadError> {
+    fn read_message(&mut self) -> FutureResult<'_, Option<NetworkMessage>, PeerReadError> {
         Box::pin(self.do_read_message())
     }
 }

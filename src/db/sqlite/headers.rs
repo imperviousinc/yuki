@@ -347,11 +347,11 @@ impl HeaderStore for SqliteHeaderDb {
         Box::pin(self.height_of(hash))
     }
 
-    fn hash_at(&mut self, height: u32) -> FutureResult<Option<BlockHash>, Self::Error> {
+    fn hash_at(&mut self, height: u32) -> FutureResult<'_, Option<BlockHash>, Self::Error> {
         Box::pin(self.hash_at(height))
     }
 
-    fn header_at(&mut self, height: u32) -> FutureResult<Option<Header>, Self::Error> {
+    fn header_at(&mut self, height: u32) -> FutureResult<'_, Option<Header>, Self::Error> {
         Box::pin(self.header_at(height))
     }
 }

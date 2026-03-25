@@ -30,7 +30,7 @@ impl NetworkConnector for TorConnection {
         &mut self,
         addr: AddrV2,
         port: u16,
-    ) -> FutureResult<(StreamReader, StreamWriter), PeerError> {
+    ) -> FutureResult<'_, (StreamReader, StreamWriter), PeerError> {
         async fn do_impl(
             client: &mut TorClient<PreferredRuntime>,
             addr: AddrV2,

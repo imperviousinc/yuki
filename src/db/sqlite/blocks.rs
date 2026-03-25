@@ -38,7 +38,7 @@ pub trait BlocksStore : Debug + Send + Sync  {
     fn insert_blocks(
         &mut self,
         blocks: BTreeMap<u32, Block>,
-    ) -> FutureResult<(), Self::Error>;
+    ) -> FutureResult<'_, (), Self::Error>;
 
     /// Get the block for a given block_hash.
     fn get_block_by_hash<'a>(
@@ -55,7 +55,7 @@ pub trait BlocksStore : Debug + Send + Sync  {
     fn get_block_hash(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<BlockHash>, Self::Error>;
+    ) -> FutureResult<'_, Option<BlockHash>, Self::Error>;
 
     /// Load blocks within a given height range.
     /// Returns a map from height to (BlockHash, Block).
@@ -68,11 +68,16 @@ pub trait BlocksStore : Debug + Send + Sync  {
     fn set_tip(
         &mut self,
         tip: HeaderCheckpoint,
-    ) -> FutureResult<(), Self::Error>;
+    ) -> FutureResult<'_, (), Self::Error>;
 
     /// Load the current blocks tip.
-    fn get_tip(&mut self) -> FutureResult<Option<HeaderCheckpoint>, Self::Error>;
+    fn get_tip(&mut self) -> FutureResult<'_, Option<HeaderCheckpoint>, Self::Error>;
 
+    /// Delete all blocks with height less than or equal to the given height.
+    fn prune_up_to_height(
+        &mut self,
+        height: u32,
+    ) -> FutureResult<'_, u32, Self::Error>;
 }
 
 // --- SQLite Implementation ---
@@ -230,6 +235,20 @@ impl SqliteBlockDb {
     }
 
 
+    async fn prune_up_to_height(&mut self, height: u32) -> Result<u32, SqlBlocksStoreError> {
+        let conn = self.conn.clone();
+        tokio::task::spawn_blocking(move || -> Result<u32, SqlBlocksStoreError> {
+            let lock = conn.blocking_lock();
+            let deleted = lock.execute(
+                "DELETE FROM blocks WHERE height <= ?1",
+                params![height],
+            )?;
+            Ok(deleted as u32)
+        })
+        .await
+        .expect("spawn_blocking failed")
+    }
+
     async fn load_blocks(
         &mut self,
         range: impl RangeBounds<u32> + Send + Sync + 'static,
@@ -294,7 +313,7 @@ impl BlocksStore for SqliteBlockDb {
     fn insert_blocks(
         &mut self,
         blocks: BTreeMap<u32, Block>,
-    ) -> FutureResult<(), Self::Error> {
+    ) -> FutureResult<'_, (), Self::Error> {
         Box::pin(self.insert_blocks(blocks))
     }
 
@@ -309,14 +328,14 @@ impl BlocksStore for SqliteBlockDb {
     fn get_block_by_height(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<Block>, Self::Error> {
+    ) -> FutureResult<'_, Option<Block>, Self::Error> {
         Box::pin(self.get_block_by_height(height))
     }
 
     fn get_block_hash(
         &mut self,
         height: u32,
-    ) -> FutureResult<Option<BlockHash>, Self::Error> {
+    ) -> FutureResult<'_, Option<BlockHash>, Self::Error> {
         Box::pin(self.get_block_hash(height))
     }
 
@@ -330,14 +349,20 @@ impl BlocksStore for SqliteBlockDb {
     fn set_tip(
         &mut self,
         tip: HeaderCheckpoint,
-    ) -> FutureResult<(), Self::Error> {
+    ) -> FutureResult<'_, (), Self::Error> {
         Box::pin(self.set_tip(tip))
     }
 
-    fn get_tip(&mut self) -> FutureResult<Option<HeaderCheckpoint>, Self::Error> {
+    fn get_tip(&mut self) -> FutureResult<'_, Option<HeaderCheckpoint>, Self::Error> {
         Box::pin(self.get_tip())
     }
 
+    fn prune_up_to_height(
+        &mut self,
+        height: u32,
+    ) -> FutureResult<'_, u32, Self::Error> {
+        Box::pin(self.prune_up_to_height(height))
+    }
 }
 
 

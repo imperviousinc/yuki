@@ -66,6 +66,8 @@ pub trait Rpc {
     #[method(name = "queuefilters")]
     async fn queue_filters(&self) -> Result<(), ErrorObjectOwned>;
 
+    #[method(name = "pruneblockchain")]
+    async fn prune_blockchain(&self, height: u32) -> Result<u32, ErrorObjectOwned>;
 }
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -220,6 +222,11 @@ impl RpcServer for RpcServerImpl {
 
     async fn queue_filters(&self) -> Result<(), ErrorObjectOwned> {
         self.requester.continue_download().await
+            .map_err(|e| ErrorObjectOwned::owned(-1, e.to_string(), None::<String>))
+    }
+
+    async fn prune_blockchain(&self, height: u32) -> Result<u32, ErrorObjectOwned> {
+        self.requester.prune_blockchain(height).await
             .map_err(|e| ErrorObjectOwned::owned(-1, e.to_string(), None::<String>))
     }
 
