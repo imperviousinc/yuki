@@ -168,6 +168,7 @@ pub(crate) enum ClientMessage {
     /// Send an empty message to see if the node is running.
     NoOp,
     GetBlockFilterByHeight(BlockFilterByHeightRequest),
+    PruneBlockchain(PruneBlockchainRequest),
 }
 
 type BlockchainInfoSender = tokio::sync::oneshot::Sender<Result<BlockchainInfo, FetchHeaderError>>;
@@ -239,6 +240,14 @@ impl BatchHeaderRequest {
     pub(crate) fn new(oneshot: BatchHeaderSender, range: Range<u32>) -> Self {
         Self { oneshot, range }
     }
+}
+
+type PruneBlockchainSender = tokio::sync::oneshot::Sender<anyhow::Result<u32>>;
+
+#[derive(Debug)]
+pub(crate) struct PruneBlockchainRequest {
+    pub(crate) oneshot: PruneBlockchainSender,
+    pub(crate) height: u32,
 }
 
 

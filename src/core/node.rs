@@ -590,6 +590,19 @@ impl<H: HeaderStore + 'static, P: PeerStore + 'static, B: BlocksStore + 'static 
                         self.dialog.send_dialog(format!("Queued {} blocks", count)).await;
                         _ = queue.oneshot.send(Ok(()));
                     }
+                    ClientMessage::PruneBlockchain(request) => {
+                        let result = self.chain.lock().await
+                            .prune_up_to_height(request.height).await;
+                        match &result {
+                            Ok(deleted) => {
+                                self.dialog.send_dialog(format!("Pruned {} blocks up to height {}", deleted, request.height)).await;
+                            }
+                            Err(e) => {
+                                self.dialog.send_dialog(format!("Could not prune blocks: {}", e)).await;
+                            }
+                        }
+                        _ = request.oneshot.send(result);
+                    }
                 }
             }
         }

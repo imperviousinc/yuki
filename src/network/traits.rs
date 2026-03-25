@@ -56,7 +56,7 @@ pub(crate) trait MessageGenerator: Send + Sync {
 
 // Responsible for parsing plaintext or encrypted messages off of the  wire.
 pub(crate) trait MessageParser: Send + Sync {
-    fn read_message(&mut self) -> FutureResult<Option<NetworkMessage>, PeerReadError>;
+    fn read_message(&mut self) -> FutureResult<'_, Option<NetworkMessage>, PeerReadError>;
 }
 
 // Establishes connections based on the network configuration.
@@ -67,7 +67,7 @@ pub(crate) trait NetworkConnector {
         &mut self,
         addr: AddrV2,
         port: u16,
-    ) -> FutureResult<(StreamReader, StreamWriter), PeerError>;
+    ) -> FutureResult<'_, (StreamReader, StreamWriter), PeerError>;
 }
 
 pub(crate) struct ClearNetConnection {}
@@ -87,7 +87,7 @@ impl NetworkConnector for ClearNetConnection {
         &mut self,
         addr: AddrV2,
         port: u16,
-    ) -> FutureResult<(StreamReader, StreamWriter), PeerError> {
+    ) -> FutureResult<'_, (StreamReader, StreamWriter), PeerError> {
         async fn do_impl(
             addr: AddrV2,
             port: u16,

@@ -60,7 +60,7 @@ pub async fn run(args: Vec<String>, shutdown: broadcast::Sender<()>) -> anyhow::
     let args = Args::try_parse_from(args)?;
 
     let subscriber = tracing_subscriber::FmtSubscriber::new();
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    let _ = tracing::subscriber::set_global_default(subscriber);
 
     let network = args.chain.network();
     let data_dir = args.data_dir.unwrap_or_else(|| PathBuf::from("./data"));
