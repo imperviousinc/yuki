@@ -99,7 +99,8 @@ pub async fn run(args: Vec<String>, shutdown: broadcast::Sender<()>) -> anyhow::
 
     let rpc_handles = start_rpc_listeners(args.rpc_bind,
                                           args.rpc_port, requester.clone(),
-                                          args.broadcast_endpoint).await?;
+                                          args.broadcast_endpoint,
+                                          checkpoint).await?;
 
     loop {
         tokio::select! {
@@ -208,11 +209,13 @@ async fn start_rpc_listeners(
     bind_addresses: Vec<String>,
     port: u16,
     requester: Requester,
-    broadcast_endpoint: Option<String>
+    broadcast_endpoint: Option<String>,
+    checkpoint: HeaderCheckpoint,
 ) -> anyhow::Result<Vec<ServerHandle>> {
     let mut handles = Vec::new();
     let rpc_server = RpcServerImpl {
         requester: requester.clone(),
+        checkpoint,
         broadcast_endpoint,
         broadcast_client: reqwest::Client::new()
     };

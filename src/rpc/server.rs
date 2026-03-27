@@ -5,7 +5,7 @@ use jsonrpsee::{
     proc_macros::rpc,
     types::ErrorObjectOwned,
 };
-use crate::{BlockchainInfo, Requester, TxBroadcast, TxBroadcastPolicy};
+use crate::{BlockchainInfo, HeaderCheckpoint, Requester, TxBroadcast, TxBroadcastPolicy};
 
 fn serialize_hex<S>(bytes: &Vec<u8>, s: S) -> Result<S::Ok, S::Error>
 where
@@ -148,6 +148,7 @@ impl Default for MempoolEntryResult {
 #[derive(Clone)]
 pub struct RpcServerImpl {
     pub requester: Requester,
+    pub checkpoint: HeaderCheckpoint,
     // Specify an additional endpoint to broadcast
     // transactions to for mempool acceptance checks
     pub broadcast_endpoint: Option<String>,
@@ -166,6 +167,10 @@ impl RpcServer for RpcServerImpl {
     }
 
     async fn get_block_hash(&self, height: u32) -> Result<BlockHash, ErrorObjectOwned> {
+        if height == self.checkpoint.height {
+            return Ok(self.checkpoint.hash);
+        }
+
         let header = self.requester.get_header(height).await
             .map_err(|e| ErrorObjectOwned::owned(-1, e.to_string(), None::<String>))?;
         Ok(header.block_hash())
