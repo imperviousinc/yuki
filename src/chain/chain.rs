@@ -1173,14 +1173,23 @@ impl<H: HeaderStore, B: BlocksStore, F: FiltersStore> Chain<H, B, F> {
         range: Range<u32>,
     ) -> Result<BTreeMap<u32, Header>, HeaderPersistenceError<H::Error>> {
         let mut db = self.db.lock().await;
-        let range_opt = db.load(range).await;
+        let range_opt = db.load(range.clone()).await;
         if range_opt.is_err() {
             self.dialog.send_warning(Warning::FailedPersistence {
                 warning: "Unexpected error fetching a range of headers from the header store"
                     .to_string(),
             });
         }
-        range_opt.map_err(HeaderPersistenceError::Database)
+        let mut headers = range_opt.map_err(HeaderPersistenceError::Database)?;
+        // Fill any gaps with headers that are still only in memory (not yet flushed).
+        for height in range {
+            if !headers.contains_key(&height) {
+                if let Some(header) = self.header_chain.header_at_height(height) {
+                    headers.insert(height, *header);
+                }
+            }
+        }
+        Ok(headers)
     }
 
     // Reset the compact filter queue because we received a new block
