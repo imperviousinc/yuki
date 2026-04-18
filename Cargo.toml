@@ -1,6 +1,6 @@
 [package]
 name = "bitcoin_yuki"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["buffrr <contact@buffrr.dev>", "Rob <rustaceanrob@protonmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
