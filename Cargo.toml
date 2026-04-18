@@ -1,11 +1,11 @@
 [package]
-name = "yuki"
+name = "bitcoin_yuki"
 version = "0.0.1"
 authors = ["buffrr <contact@buffrr.dev>", "Rob <rustaceanrob@protonmail.com>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A light Bitcoin node"
-repository = "https://github.com/buffrr/yuki"
+repository = "https://github.com/imperviousinc/yuki"
 readme = "README.md"
 keywords = ["bitcoin", "cryptography", "network", "peer-to-peer"]
 categories = ["cryptography::cryptocurrencies"]
