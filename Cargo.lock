@@ -485,6 +485,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoin_yuki"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "arti-client",
+ "bincode",
+ "bip324",
+ "bitcoin",
+ "clap",
+ "corepc-node",
+ "env_logger",
+ "futures-util",
+ "hex",
+ "jsonrpsee",
+ "reqwest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tor-rtcompat",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5669,33 +5696,6 @@ checksum = "0d65cbf2f12c15564212d48f4e3dfb87923d25d611f2aed18f4cb23f0413d89e"
 dependencies = [
  "libc",
  "rustix 1.0.2",
-]
-
-[[package]]
-name = "yuki"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "arti-client",
- "bincode",
- "bip324",
- "bitcoin",
- "clap",
- "corepc-node",
- "env_logger",
- "futures-util",
- "hex",
- "jsonrpsee",
- "reqwest",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tokio-util",
- "tor-rtcompat",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
